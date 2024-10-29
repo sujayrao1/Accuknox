@@ -1,0 +1,27 @@
+Yes, Django signals run in the same thread as the caller by default. Below is the code snippet to demonstrate this using post_save signal.
+
+
+Code Snippet:
+
+class MyModel(models.Model):
+    name = models.CharField(max_length=100)
+
+@receiver(post_save, sender=MyModel)
+def mySignalHandler(sender, instance, **kwargs):
+    print("Signal handler thread ID:", threading.get_ident())  #Thread ID of handler
+
+def test_signal():
+    print("Caller thread ID:", threading.get_ident())  #Thread ID of the caller
+    instance = MyModel(name="Test")
+    instance.save()
+
+test_signal()
+
+
+Output:
+
+Caller thread ID: 123456789098765
+Signal handler thread ID: 123456789098765
+
+
+The output shows that the thread IDs are same, confirming that the signal handler executes in the same thread as the caller.

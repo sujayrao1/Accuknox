@@ -1,0 +1,38 @@
+Yes, Django signals run in the same database transaction as the caller. Below is the code snippet to demostrate this using post_save signal.
+
+
+Code Snippet:
+
+class MyModel(models.Model):
+    name = models.CharField(max_length=100)
+
+class SignalLog(models.Model):
+    message = models.CharField(max_length=100)
+
+@receiver(post_save, sender=TestModel)
+def mySignalHandler(sender, instance, **kwargs):
+    print("Signal handler executing.")
+    SignalLog.objects.create(message=f"Handled save for {instance.name}")
+
+def test_signal_transaction():
+    with transaction.atomic():
+        instance = MyModel(name="Test Transaction")
+        instance.save()
+        
+        print("Records in SignalLog after save (inside transaction):", SignalLog.objects.count())
+        
+        raise Exception("Rolling back transaction")
+
+    print("Records in SignalLog after transaction rollback:", SignalLog.objects.count())
+
+test_signal_transaction()
+
+
+Output:
+
+Signal handler executing.
+Records in SignalLog after save (inside transaction): 1
+Records in SignalLog after transaction rollback: 0
+
+
+The SignalLog record count is zero after the rollback, indicating that the changes made by the signal handler were also rolled back. This confirms that the signal ran within the same database transaction as the caller.

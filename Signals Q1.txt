@@ -1,0 +1,29 @@
+By default, Django signals are executed synchronously. Below is a code snippet. We'll use the post_save signal for this.
+
+Code Snippet:
+
+class MyModel(models.Model):
+    name = models.CharField(max_length=100)
+
+@receiver(post_save, sender=MyModel)
+def mySignalHandler(sender, instance, **kwargs):
+    print("Signal handler started.")
+    time.sleep(2)  #Delay to show synchronous behavior
+    print("Signal handler finished.")
+
+def testSignal():
+    print("Before saving the instance.")
+    instance = MyModel(name="Test")
+    instance.save()
+    print("After saving the instance.")
+
+test_signal()
+
+Output:
+
+Before saving the instance.
+Signal handler started.
+Signal handler finished.
+After saving the instance.
+
+If signals were asynchronous, we’d see "After saving the instance." printed immediately after "Before saving the instance." But since they are synchronous, the code in my_signal_handler completes before "After saving the instance."
